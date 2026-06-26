@@ -105,6 +105,44 @@
         </section>
 
         <section class="control-group">
+          <h2>Sismos USGS</h2>
+          <label class="check-row">
+            <input id="earthquakesToggle" type="checkbox" />
+            Mostrar terremotos M 6.5+
+          </label>
+          <label class="check-row">
+            <input id="earthquakeLabelsToggle" type="checkbox" />
+            Mostrar texto de terremotos
+          </label>
+          <label>
+            Magnitud mínima
+            <input id="earthquakeMinMagnitude" type="number" min="0" max="10" step="0.1" value="6.5" />
+          </label>
+          <div class="color-grid">
+            <label>
+              M 6.5
+              <input id="earthquakeLowColor" type="color" value="#f6a800" />
+            </label>
+            <label>
+              M 8+
+              <input id="earthquakeHighColor" type="color" value="#b42318" />
+            </label>
+          </div>
+        </section>
+
+        <section class="control-group">
+          <h2>Vista del mapa</h2>
+          <div class="zoom-buttons" aria-label="Zoom del mapa">
+            <button id="mapZoomOut" class="secondary-button" type="button">−</button>
+            <button id="mapZoomIn" class="secondary-button" type="button">+</button>
+          </div>
+          <label>
+            Tamaño de puntos y texto
+            <input id="mapDisplayScale" type="range" min="0.7" max="1.8" step="0.1" value="1" />
+          </label>
+        </section>
+
+        <section class="control-group">
           <h2>Colores</h2>
           <div class="color-grid">
             <label>
@@ -168,6 +206,11 @@
           Meteorología: NASA POWER Daily API. Base cartográfica: Natural Earth / world-atlas.
           La fase lunar se calcula localmente para la fecha seleccionada.
         </p>
+        <section id="earthquakeDetails" class="earthquake-details" hidden>
+          <h2>Terremotos M 6.5+ del día seleccionado</h2>
+          <p id="earthquakeSummary" class="hint"></p>
+          <div id="earthquakeList"></div>
+        </section>
       </section>
     </main>
 
@@ -177,5 +220,7 @@
     <script src="assets/hotfix.js"></script>
     <script src="assets/label-controls.js"></script>
     <script src="assets/tectonic-plates.js"></script>
+    <script src="assets/map-view-controls.js"></script>
+    <script src="assets/earthquakes.js"></script>
   </body>
 </html>
