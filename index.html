@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mapa Mundo Meteorologico</title>
+    <meta
+      name="description"
+      content="Web app para visualizar datos meteorologicos historicos diarios por ciudad usando NASA POWER."
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <main id="loginView" class="login-view" aria-labelledby="loginTitle">
+      <section class="login-panel">
+        <p class="eyebrow">Mapa Mundo</p>
+        <h1 id="loginTitle">Ingreso privado</h1>
+        <form id="loginForm" class="login-form">
+          <label>
+            Usuario
+            <input id="username" name="username" autocomplete="username" required />
+          </label>
+          <label>
+            Contraseña
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+          <p id="loginError" class="form-error" role="alert"></p>
+          <button type="submit" class="primary-button">Entrar</button>
+        </form>
+      </section>
+    </main>
+
+    <main id="appView" class="app-shell" hidden>
+      <aside class="sidebar" aria-label="Panel de ajustes">
+        <div class="brand-row">
+          <div>
+            <p class="eyebrow">NASA POWER</p>
+            <h1>Mapa Mundo</h1>
+          </div>
+          <button id="logoutButton" class="ghost-button" type="button">Salir</button>
+        </div>
+
+        <section class="control-group">
+          <h2>Fecha</h2>
+          <label>
+            Día seleccionado
+            <input id="dateInput" type="date" min="1981-01-01" required />
+          </label>
+          <p class="hint">Datos diarios disponibles desde 1981-01-01 hasta fecha cercana al presente.</p>
+        </section>
+
+        <section class="control-group">
+          <h2>Datos a mostrar</h2>
+          <label class="check-row">
+            <input type="checkbox" class="metric-toggle" value="temperature" checked />
+            Temperatura promedio
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="metric-toggle" value="pressure" />
+            Presión atmosférica
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="metric-toggle" value="humidity" checked />
+            Humedad promedio
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="metric-toggle" value="moon" />
+            Estado de la luna
+          </label>
+        </section>
+
+        <section class="control-group">
+          <h2>Colores</h2>
+          <div class="color-grid">
+            <label>
+              Frío
+              <input id="temperatureLow" type="color" value="#2364ff" />
+            </label>
+            <label>
+              Calor
+              <input id="temperatureHigh" type="color" value="#e3342f" />
+            </label>
+            <label>
+              Presión baja
+              <input id="pressureLow" type="color" value="#20a4a6" />
+            </label>
+            <label>
+              Presión alta
+              <input id="pressureHigh" type="color" value="#f6a800" />
+            </label>
+            <label>
+              Humedad baja
+              <input id="humidityLow" type="color" value="#c88b37" />
+            </label>
+            <label>
+              Humedad alta
+              <input id="humidityHigh" type="color" value="#1f9fda" />
+            </label>
+            <label>
+              Luna
+              <input id="moonColor" type="color" value="#f5f0c9" />
+            </label>
+          </div>
+        </section>
+
+        <section class="actions" aria-label="Acciones">
+          <button id="applyButton" class="primary-button" type="button">Aplicar ajustes</button>
+          <button id="clearButton" class="secondary-button" type="button">Limpiar mapa</button>
+          <button id="exportImageButton" class="secondary-button" type="button">Exportar imagen</button>
+          <button id="exportCsvButton" class="secondary-button" type="button">Exportar CSV</button>
+        </section>
+
+        <section class="status-panel" aria-live="polite">
+          <h2>Estado</h2>
+          <p id="statusText">Listo para cargar datos.</p>
+          <progress id="loadProgress" value="0" max="1"></progress>
+        </section>
+      </aside>
+
+      <section class="map-stage">
+        <div class="map-toolbar">
+          <div>
+            <p id="mapKicker">Sin datos cargados</p>
+            <h2 id="mapTitle">Mapa oficial de referencia mundial</h2>
+          </div>
+          <div id="legend" class="legend" aria-label="Leyenda"></div>
+        </div>
+        <div id="mapFrame" class="map-frame">
+          <svg id="worldMap" role="img" aria-label="Mapa del mundo con datos meteorologicos por ciudad"></svg>
+        </div>
+        <div id="cityTooltip" class="tooltip" hidden></div>
+        <p class="source-note">
+          Meteorología: NASA POWER Daily API. Base cartográfica: Natural Earth / world-atlas.
+          La fase lunar se calcula localmente para la fecha seleccionada.
+        </p>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+    <script src="assets/app.js"></script>
+  </body>
+</html>
