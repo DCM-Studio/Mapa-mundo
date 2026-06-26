@@ -76,6 +76,27 @@
         </section>
 
         <section class="control-group">
+          <h2>Texto en el mapa</h2>
+          <p class="hint">Ocultar el texto mantiene visibles las zonas coloreadas.</p>
+          <label class="check-row">
+            <input type="checkbox" class="label-toggle" value="temperature" checked />
+            Mostrar temperatura escrita
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="label-toggle" value="pressure" checked />
+            Mostrar presión escrita
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="label-toggle" value="humidity" checked />
+            Mostrar humedad escrita
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="label-toggle" value="moon" checked />
+            Mostrar luna escrita
+          </label>
+        </section>
+
+        <section class="control-group">
           <h2>Colores</h2>
           <div class="color-grid">
             <label>
@@ -146,5 +167,6 @@
     <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
     <script src="assets/app.js"></script>
     <script src="assets/hotfix.js"></script>
+    <script src="assets/label-controls.js"></script>
   </body>
 </html>
