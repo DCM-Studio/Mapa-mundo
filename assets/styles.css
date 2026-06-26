@@ -111,6 +111,7 @@ label {
 input[type="text"],
 input[type="password"],
 input[type="date"],
+input[type="number"],
 input:not([type]) {
   width: 100%;
   min-height: 42px;
@@ -226,6 +227,12 @@ input[type="color"] {
 
 .actions {
   grid-template-columns: 1fr;
+}
+
+.zoom-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 progress {
@@ -362,6 +369,36 @@ progress::-webkit-progress-value {
 
 .source-note {
   text-align: right;
+}
+
+.earthquake-details {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 14px;
+}
+
+.earthquake-details h2 {
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.earthquake-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.earthquake-item {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+  color: var(--ink);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.earthquake-item strong {
+  display: block;
 }
 
 @media (max-width: 900px) {
