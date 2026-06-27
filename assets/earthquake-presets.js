@@ -42,7 +42,7 @@
   loadPresets();
 
   async function loadPresets() {
-    setPlaceholder("Cargando últimos terremotos M7+...");
+    setPlaceholder("Cargando últimos 20 terremotos M7+...");
 
     try {
       const payload = await fetchLatestEarthquakes();
@@ -65,6 +65,7 @@
     url.searchParams.set("format", "geojson");
     url.searchParams.set("eventtype", "earthquake");
     url.searchParams.set("minmagnitude", "7");
+    url.searchParams.set("starttime", "1900-01-01");
     url.searchParams.set("orderby", "time");
     url.searchParams.set("limit", "20");
 
