@@ -63,10 +63,53 @@
   }
 
   function normalizeMetricAreaColors() {
-    document.querySelectorAll(".metric-area").forEach((area) => {
-      area.style.mixBlendMode = "normal";
-      area.style.opacity = "1";
+    const container = document.getElementById("metricAreas");
+
+    if (!container) {
+      return;
+    }
+
+    const groups = new Map();
+    container.querySelectorAll("g[data-area-color-group='1']").forEach((group) => {
+      groups.set(group.dataset.areaColorKey, group);
     });
+
+    container.querySelectorAll(".metric-area").forEach((area) => {
+      const key = getAreaColorKey(area);
+      let group = groups.get(key);
+
+      if (!group) {
+        group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        group.dataset.areaColorGroup = "1";
+        group.dataset.areaColorKey = key;
+        group.style.mixBlendMode = "multiply";
+        group.style.opacity = area.classList.contains("moon") ? "0.36" : "0.38";
+        container.appendChild(group);
+        groups.set(key, group);
+      }
+
+      group.appendChild(area);
+
+      if (Number(area.getAttribute("opacity")) > 0) {
+        area.setAttribute("opacity", "1");
+      }
+      area.style.mixBlendMode = "normal";
+    });
+  }
+
+  function getAreaColorKey(area) {
+    const metricClass = Array.from(area.classList).find((className) => className !== "metric-area") || "metric";
+    const color = window.d3?.color(area.getAttribute("fill"));
+
+    if (!color) {
+      return `${metricClass}:${area.getAttribute("fill") || "none"}`;
+    }
+
+    const red = Math.round(color.r / 32);
+    const green = Math.round(color.g / 32);
+    const blue = Math.round(color.b / 32);
+
+    return `${metricClass}:${red}-${green}-${blue}`;
   }
 
   function applyPlateCityFilter() {
