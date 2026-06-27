@@ -52,6 +52,12 @@
             Día seleccionado
             <input id="dateInput" type="date" min="1981-01-01" required />
           </label>
+          <label>
+            Fechas por terremotos recientes M7+
+            <select id="earthquakePresetSelect">
+              <option value="">Cargando últimos terremotos M7+...</option>
+            </select>
+          </label>
           <p class="hint">Datos diarios disponibles desde 1981-01-01 hasta fecha cercana al presente.</p>
         </section>
 
@@ -258,6 +264,7 @@
     <script src="assets/tectonic-plates.js"></script>
     <script src="assets/map-layer-filters.js"></script>
     <script src="assets/moon-phases.js"></script>
+    <script src="assets/earthquake-presets.js"></script>
     <script src="assets/map-view-controls.js"></script>
     <script src="assets/earthquakes.js"></script>
     <script src="assets/csv-export-extended.js"></script>
