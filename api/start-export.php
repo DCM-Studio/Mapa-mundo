@@ -22,15 +22,9 @@ $job = [
     'rows_written' => 0,
 ];
 mm_write_job($jobId, $job);
+mm_write_latest_job_id($jobId);
 
-$spawned = false;
-if (function_exists('exec')) {
-    $php = PHP_BINARY ?: 'php';
-    $worker = __DIR__ . '/export-worker.php';
-    $cmd = escapeshellcmd($php) . ' ' . escapeshellarg($worker) . ' ' . escapeshellarg($jobId) . ' > /dev/null 2>&1 &';
-    @exec($cmd, $output, $code);
-    $spawned = $code === 0;
-}
+$spawned = mm_spawn_export_worker($jobId);
 
 mm_json_response([
     'ok' => true,
