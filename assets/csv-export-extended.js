@@ -82,13 +82,17 @@
   }
 
   function buildExtendedCsv(originalCsv) {
-    const parsed = parseCsv(originalCsv);
+    const sourceHeader = parseCsvHeader(originalCsv);
 
-    if (parsed.length < 2 || !isDailyWeatherCsvHeader(parsed[0])) {
+    if (!isDailyWeatherCsvHeader(sourceHeader)) {
       return originalCsv;
     }
 
-    const sourceHeader = parsed[0];
+    const parsed = parseCsv(originalCsv);
+    if (parsed.length < 2) {
+      return originalCsv;
+    }
+
     const sourceRows = parsed.slice(1);
     const sourceIndex = Object.fromEntries(sourceHeader.map((name, index) => [name, index]));
     const state = getExportState();
@@ -145,6 +149,10 @@
   }
 
   function isDailyWeatherCsvHeader(header) {
+    if (!Array.isArray(header) || !header.length) {
+      return false;
+    }
+
     const required = [
       "fecha",
       "ciudad",
@@ -166,6 +174,12 @@
     ];
 
     return required.every((name) => header.includes(name)) && !alreadyExtended.some((name) => header.includes(name));
+  }
+
+  function parseCsvHeader(csv) {
+    const end = csv.search(/\r?\n/);
+    const firstLine = end >= 0 ? csv.slice(0, end) : csv;
+    return parseCsv(firstLine)[0] || [];
   }
 
   function getEarthquakeRows(state) {
