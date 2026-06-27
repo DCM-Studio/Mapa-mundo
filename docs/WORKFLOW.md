@@ -18,6 +18,10 @@ Decision aprobada por implementacion inicial:
 - Lista curada de ciudades principales para evitar miles de llamadas desde el navegador.
 - Login visual en frontend, documentado como no seguro para uso sensible.
 
+## Decision posterior
+
+- La exportacion historica M7+ se genera en PHP dentro de `api/` y guarda CSV persistentes en `exports/`, para que el proceso pueda continuar aunque el navegador se cierre o se cierre sesion.
+
 ## Antes de modificar
 
 1. Revisar `README.md`.
