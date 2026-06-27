@@ -28,6 +28,32 @@ function mm_json_response(array $payload, int $status = 200): void {
 function mm_new_job_id(): string { return bin2hex(random_bytes(12)); }
 function mm_clean_job_id(string $value): string { return preg_match('/^[a-f0-9]{24}$/', $value) ? $value : ''; }
 function mm_job_path(string $jobId): string { return mm_jobs_dir() . '/' . $jobId . '.json'; }
+function mm_latest_job_path(): string { return mm_jobs_dir() . '/latest-job.txt'; }
+
+function mm_latest_job_id(): string {
+    $path = mm_latest_job_path();
+    if (is_file($path)) {
+        $jobId = mm_clean_job_id(trim((string) file_get_contents($path)));
+        if ($jobId !== '') return $jobId;
+    }
+
+    $latestPath = '';
+    $latestTime = 0;
+    foreach (glob(mm_jobs_dir() . '/*.json') ?: [] as $jobPath) {
+        if (!is_file($jobPath)) continue;
+        $modified = filemtime($jobPath) ?: 0;
+        if ($modified > $latestTime) {
+            $latestTime = $modified;
+            $latestPath = $jobPath;
+        }
+    }
+
+    return $latestPath === '' ? '' : mm_clean_job_id(basename($latestPath, '.json'));
+}
+
+function mm_write_latest_job_id(string $jobId): void {
+    file_put_contents(mm_latest_job_path(), $jobId . "\n", LOCK_EX);
+}
 
 function mm_read_job(string $jobId): ?array {
     $path = mm_job_path($jobId);
@@ -40,6 +66,57 @@ function mm_write_job(string $jobId, array $job): void {
     $job['job_id'] = $jobId;
     $job['updated_at'] = gmdate('c');
     file_put_contents(mm_job_path($jobId), json_encode($job, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
+
+function mm_php_binary_candidates(): array {
+    $candidates = [];
+    if (defined('PHP_BINARY') && PHP_BINARY) $candidates[] = PHP_BINARY;
+    if (defined('PHP_BINDIR') && PHP_BINDIR) $candidates[] = rtrim(PHP_BINDIR, '/') . '/php';
+    $candidates[] = '/usr/local/bin/php';
+    $candidates[] = '/usr/bin/php';
+    $candidates[] = 'php';
+    return array_values(array_unique(array_filter($candidates)));
+}
+
+function mm_shell_command_part(string $command): string {
+    return strpos($command, '/') !== false ? escapeshellarg($command) : escapeshellcmd($command);
+}
+
+function mm_spawn_export_worker(string $jobId): bool {
+    if (!function_exists('exec')) return false;
+
+    $worker = __DIR__ . '/export-worker.php';
+    $logPath = mm_jobs_dir() . '/' . $jobId . '.log';
+
+    foreach (mm_php_binary_candidates() as $php) {
+        if (strpos($php, '/') !== false && !is_file($php)) continue;
+
+        $cmd = mm_shell_command_part($php)
+            . ' ' . escapeshellarg($worker)
+            . ' ' . escapeshellarg($jobId)
+            . ' > ' . escapeshellarg($logPath)
+            . ' 2>&1 & echo $!';
+
+        $output = [];
+        $code = 1;
+        @exec($cmd, $output, $code);
+        $pid = trim((string) ($output[0] ?? ''));
+        if ($code === 0 && $pid !== '') {
+            $job = mm_read_job($jobId) ?: [];
+            $job['worker_pid'] = $pid;
+            $job['worker_started_at'] = gmdate('c');
+            $job['worker_command'] = basename($php);
+            mm_write_job($jobId, $job);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function mm_job_seconds_since_update(array $job): int {
+    $updated = strtotime((string) ($job['updated_at'] ?? ''));
+    return $updated ? max(0, time() - $updated) : PHP_INT_MAX;
 }
 
 function mm_http_get_json(string $url): array {
@@ -289,6 +366,7 @@ function mm_run_export_job(string $jobId): void {
         $job['state'] = 'ready';
         $job['download_url'] = 'exports/' . $filename;
         mm_write_job($jobId, $job);
+        mm_write_latest_job_id($jobId);
     } catch (Throwable $error) {
         if (isset($handle) && is_resource($handle)) fclose($handle);
         $job['state'] = 'failed';
