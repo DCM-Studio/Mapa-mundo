@@ -17,6 +17,8 @@ Incluye:
 - Limpieza del mapa.
 - Exportacion de imagen PNG del mapa visible.
 - Exportacion CSV de los datos cargados.
+- Exportacion CSV historica M7+ con meteorologia NASA POWER del dia previo a cada terremoto para todas las ciudades/puntos cargados.
+- Exportacion historica M7+ asincrona en servidor, con archivo persistente en `exports/`.
 
 ## Fuente de datos
 
@@ -36,7 +38,7 @@ La fase lunar se calcula localmente con una formula astronomica basada en ciclo 
 
 - La app es estatica. El login incluido en frontend sirve como barrera de uso, pero no es seguridad real porque las credenciales quedan en el codigo descargable.
 - Para seguridad real en `dcm.cl/Mapa-mundo`, proteger la carpeta del hosting con `.htpasswd`, Cloudflare Access, un panel del hosting o un backend.
-- NASA POWER entrega datos por coordenada. Cargar literalmente todas las ciudades del mundo desde el navegador produciria miles de solicitudes y podria ser bloqueado. Esta version usa una lista curada de ciudades principales.
+- NASA POWER entrega datos por coordenada. Cargar literalmente todas las ciudades del mundo desde el navegador produciria miles de solicitudes y podria ser bloqueado. Esta version usa una lista curada de ciudades principales y suma los epicentros USGS M7+ disponibles en el desplegable historico.
 - La presion `PS` corresponde a presion de superficie del punto, no presion reducida al nivel del mar.
 
 ## Despliegue
@@ -47,11 +49,11 @@ Subir estos archivos a la carpeta del hosting:
 dcm.cl/Mapa-mundo/
   index.html
   assets/
-    app.js
-    styles.css
+  api/
+  exports/
 ```
 
-No requiere build ni servidor Node.
+No requiere build ni servidor Node. La exportacion historica M7+ usa PHP del hosting para generar archivos persistentes en segundo plano.
 
 ## Proximo paso recomendado
 
