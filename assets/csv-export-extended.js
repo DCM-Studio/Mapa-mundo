@@ -21,7 +21,7 @@
   function buildExtendedCsv(originalCsv) {
     const parsed = parseCsv(originalCsv);
 
-    if (parsed.length < 2 || !parsed[0].includes("temperatura_promedio_c")) {
+    if (parsed.length < 2 || !isDailyWeatherCsvHeader(parsed[0])) {
       return originalCsv;
     }
 
@@ -79,6 +79,30 @@
     const quakeRows = getEarthquakeRows(state);
 
     return [header, ...cityRows, ...quakeRows].map((row) => row.map(escapeCsv).join(",")).join("\n");
+  }
+
+  function isDailyWeatherCsvHeader(header) {
+    const required = [
+      "fecha",
+      "ciudad",
+      "pais",
+      "latitud",
+      "longitud",
+      "temperatura_promedio_c",
+      "humedad_promedio_pct",
+      "presion_atmosferica_kpa",
+      "fase_lunar",
+      "fuente_meteorologica",
+    ];
+    const alreadyExtended = [
+      "tipo_registro",
+      "terremoto_fecha",
+      "terremoto_magnitud",
+      "ciudad_cerca_limite_placa_300km",
+      "ciudad_distancia_limite_placa_km",
+    ];
+
+    return required.every((name) => header.includes(name)) && !alreadyExtended.some((name) => header.includes(name));
   }
 
   function getEarthquakeRows(state) {
