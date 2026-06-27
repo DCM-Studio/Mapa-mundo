@@ -99,8 +99,16 @@
         <section class="control-group">
           <h2>Capas geológicas</h2>
           <label class="check-row">
+            <input id="baseMapToggle" type="checkbox" checked />
+            Mostrar mapa base
+          </label>
+          <label class="check-row">
             <input id="tectonicPlatesToggle" type="checkbox" />
             Mostrar placas tectónicas
+          </label>
+          <label class="check-row">
+            <input id="plateCityFilterToggle" type="checkbox" />
+            Sólo ciudades cerca de placas
           </label>
         </section>
 
@@ -220,6 +228,7 @@
     <script src="assets/hotfix.js"></script>
     <script src="assets/label-controls.js"></script>
     <script src="assets/tectonic-plates.js"></script>
+    <script src="assets/map-layer-filters.js"></script>
     <script src="assets/map-view-controls.js"></script>
     <script src="assets/earthquakes.js"></script>
   </body>
