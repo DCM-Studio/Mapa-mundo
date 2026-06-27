@@ -14,6 +14,69 @@
   window.Blob.prototype = NativeBlob.prototype;
   Object.setPrototypeOf(window.Blob, NativeBlob);
 
+  installCsvDownloadFallback();
+
+  function installCsvDownloadFallback() {
+    const nativeClick = HTMLAnchorElement.prototype.click;
+    const nativeRevokeObjectUrl = URL.revokeObjectURL.bind(URL);
+    const protectedUrls = new Set();
+
+    document.addEventListener(
+      "click",
+      (event) => {
+        if (event.target?.closest?.("#exportEarthquakeCatalogCsvButton")) {
+          event.preventDefault();
+        }
+      },
+      true,
+    );
+
+    HTMLAnchorElement.prototype.click = function mapaMundoDownloadClick() {
+      if (this.download && typeof this.href === "string" && this.href.startsWith("blob:")) {
+        protectedUrls.add(this.href);
+        showPreparedCsvDownload(this.href, this.download);
+        window.setTimeout(
+          () => {
+            protectedUrls.delete(this.href);
+            nativeRevokeObjectUrl(this.href);
+          },
+          10 * 60 * 1000,
+        );
+      }
+
+      return nativeClick.call(this);
+    };
+
+    URL.revokeObjectURL = function mapaMundoRevokeObjectUrl(url) {
+      if (protectedUrls.has(url)) {
+        return;
+      }
+
+      return nativeRevokeObjectUrl(url);
+    };
+  }
+
+  function showPreparedCsvDownload(url, filename) {
+    const exportButton =
+      document.getElementById("exportEarthquakeCatalogCsvButton") || document.getElementById("exportCsvButton");
+    if (!exportButton?.parentElement) {
+      return;
+    }
+
+    let link = document.getElementById("preparedCsvDownloadLink");
+    if (!link) {
+      link = document.createElement("a");
+      link.id = "preparedCsvDownloadLink";
+      link.className = "secondary-button";
+      link.textContent = "Descargar archivo listo";
+      exportButton.insertAdjacentElement("afterend", link);
+    }
+
+    link.href = url;
+    link.download = filename;
+    link.hidden = false;
+  }
+
   function isCsvBlob(options) {
     return typeof options?.type === "string" && options.type.toLowerCase().includes("text/csv");
   }
