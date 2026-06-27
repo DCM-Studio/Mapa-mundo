@@ -19,6 +19,7 @@
   }
 
   let applyingPreset = false;
+  let catalogDownloadUrl = "";
   const catalogExportButton = createCatalogExportButton();
 
   select.addEventListener("change", () => {
@@ -50,7 +51,10 @@
 
   loadPresets();
 
-  catalogExportButton?.addEventListener("click", exportCatalogCsv);
+  catalogExportButton?.addEventListener("click", (event) => {
+    event.preventDefault();
+    void exportCatalogCsv();
+  });
 
   async function loadPresets() {
     setPlaceholder("Cargando terremotos M7+ desde 1900...");
@@ -173,6 +177,7 @@
     }
 
     catalogExportButton.disabled = true;
+    clearPreparedCatalogDownload();
     try {
       setExportStatus("Preparando ciudades y límites de placas...", 0.03);
       const cities = await loadCitiesFromApp();
@@ -182,8 +187,12 @@
 
       setExportStatus("Generando CSV histórico M7+...", 0.96);
       const csv = buildCatalogCsv(events, cities, weatherByCity, plateDistances);
-      downloadCsv(csv, `mapa-mundo-terremotos-m7-desde-1900-${new Date().toISOString().slice(0, 10)}.csv`);
-      setExportStatus(`CSV histórico generado: ${events.length} terremotos por ${cities.length} ciudades.`, 1);
+      const filename = `mapa-mundo-terremotos-m7-desde-1900-${new Date().toISOString().slice(0, 10)}.csv`;
+      prepareCatalogDownload(csv, filename);
+      setExportStatus(
+        `CSV histórico listo: ${events.length} terremotos por ${cities.length} ciudades. Presiona "Descargar archivo listo".`,
+        1,
+      );
     } catch (error) {
       console.error(error);
       setExportStatus(`No se pudo generar el CSV histórico: ${error.message}`, 0);
@@ -471,16 +480,49 @@
     return /[",\n\r]/.test(text) ? `"${text.replaceAll("\"", "\"\"")}"` : text;
   }
 
-  function downloadCsv(content, filename) {
+  function prepareCatalogDownload(content, filename) {
+    clearPreparedCatalogDownload();
+
     const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
+    catalogDownloadUrl = URL.createObjectURL(blob);
+
+    const link = getCatalogDownloadLink();
+    link.href = catalogDownloadUrl;
     link.download = filename;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    link.hidden = false;
+    return link;
+  }
+
+  function getCatalogDownloadLink() {
+    const existing = document.getElementById("catalogDownloadLink");
+    if (existing) {
+      return existing;
+    }
+
+    const link = document.createElement("a");
+    link.id = "catalogDownloadLink";
+    link.className = "secondary-button";
+    link.textContent = "Descargar archivo listo";
+    link.hidden = true;
+    link.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+    catalogExportButton.insertAdjacentElement("afterend", link);
+    return link;
+  }
+
+  function clearPreparedCatalogDownload() {
+    if (catalogDownloadUrl) {
+      URL.revokeObjectURL(catalogDownloadUrl);
+      catalogDownloadUrl = "";
+    }
+
+    const link = document.getElementById("catalogDownloadLink");
+    if (link) {
+      link.removeAttribute("href");
+      link.removeAttribute("download");
+      link.hidden = true;
+    }
   }
 
   function setExportStatus(message, value) {
