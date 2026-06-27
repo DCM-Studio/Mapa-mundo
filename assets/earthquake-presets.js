@@ -42,7 +42,7 @@
   loadPresets();
 
   async function loadPresets() {
-    setPlaceholder("Cargando últimos 20 terremotos M7+...");
+    setPlaceholder("Cargando terremotos M7+ desde 1900...");
 
     try {
       const payload = await fetchLatestEarthquakes();
@@ -67,7 +67,7 @@
     url.searchParams.set("minmagnitude", "7");
     url.searchParams.set("starttime", "1900-01-01");
     url.searchParams.set("orderby", "time");
-    url.searchParams.set("limit", "20");
+    url.searchParams.set("limit", "20000");
 
     const response = await fetch(url);
     if (!response.ok) {
@@ -103,7 +103,7 @@
 
   function renderOptions(events) {
     select.innerHTML = "";
-    select.appendChild(new Option("Elegir fecha por terremoto M7+ (USGS)", ""));
+    select.appendChild(new Option("Elegir fecha por terremoto M7+ desde 1900 (USGS)", ""));
 
     events.forEach((event, index) => {
       const option = new Option(
