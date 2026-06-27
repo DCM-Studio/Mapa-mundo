@@ -4,6 +4,16 @@
   const areaLayer = document.getElementById("metricAreas");
   const dateInput = document.getElementById("dateInput");
   const moonColor = document.getElementById("moonColor");
+  const moonColorInputs = {
+    new: document.getElementById("moonNewColor"),
+    "waxing-crescent": document.getElementById("moonWaxingCrescentColor"),
+    "first-quarter": document.getElementById("moonFirstQuarterColor"),
+    "waxing-gibbous": document.getElementById("moonWaxingGibbousColor"),
+    full: moonColor,
+    "waning-gibbous": document.getElementById("moonWaningGibbousColor"),
+    "last-quarter": document.getElementById("moonLastQuarterColor"),
+    "waning-crescent": document.getElementById("moonWaningCrescentColor"),
+  };
 
   if (!areaLayer || !dateInput || !moonColor) {
     return;
@@ -29,7 +39,7 @@
   });
 
   dateInput.addEventListener("change", scheduleDraw);
-  moonColor.addEventListener("input", scheduleDraw);
+  Object.values(moonColorInputs).forEach((input) => input?.addEventListener("input", scheduleDraw));
 
   scheduleDraw();
 
@@ -65,11 +75,12 @@
     });
 
     markers.forEach((marker) => marker.remove());
+    updateMoonLegend();
   }
 
   function renderMarker(marker, cx, cy, radius, phase) {
     const r = Number.isFinite(radius) && radius > 0 ? Math.max(7, Math.min(12, radius)) : 8;
-    const light = moonColor.value || "#f5f0c9";
+    const light = colorForPhase(phase.kind);
     const dark = "#17222b";
     const stroke = "#102b35";
 
@@ -154,5 +165,32 @@
     if (fraction < 0.72) return { label: "Gibosa menguante", kind: "waning-gibbous" };
     if (fraction < 0.78) return { label: "Cuarto menguante", kind: "last-quarter" };
     return { label: "Menguante", kind: "waning-crescent" };
+  }
+
+  function colorForPhase(kind) {
+    return moonColorInputs[kind]?.value || moonColor.value || "#f5f0c9";
+  }
+
+  function updateMoonLegend() {
+    const legend = document.getElementById("legend");
+    const moonItem = Array.from(legend?.querySelectorAll(".legend-item") || []).find((item) =>
+      item.textContent.includes("Luna"),
+    );
+    const swatch = moonItem?.querySelector(".legend-swatch");
+
+    if (!swatch) {
+      return;
+    }
+
+    swatch.style.background = `linear-gradient(90deg, ${[
+      colorForPhase("new"),
+      colorForPhase("waxing-crescent"),
+      colorForPhase("first-quarter"),
+      colorForPhase("waxing-gibbous"),
+      colorForPhase("full"),
+      colorForPhase("waning-gibbous"),
+      colorForPhase("last-quarter"),
+      colorForPhase("waning-crescent"),
+    ].join(", ")})`;
   }
 })();
