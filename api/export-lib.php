@@ -305,10 +305,10 @@ function mm_compact_date(string $date): string {
     return str_replace('-', '', $date);
 }
 
-function mm_fetch_weather_range(array $city, string $startDate, string $endDate): array {
+function mm_fetch_weather_range(array $city, string $startDate, string $endDate, bool $useCache = true): array {
     $cacheKey = sha1($city['name'] . '|' . $city['country'] . '|' . $city['lat'] . '|' . $city['lon'] . '|' . $startDate . '|' . $endDate);
     $cachePath = mm_cache_dir() . '/weather-' . $cacheKey . '.json';
-    if (is_file($cachePath)) {
+    if ($useCache && is_file($cachePath)) {
         $cached = json_decode((string) file_get_contents($cachePath), true);
         if (is_array($cached)) {
             return $cached;
@@ -327,7 +327,9 @@ function mm_fetch_weather_range(array $city, string $startDate, string $endDate)
     ]);
     $payload = mm_http_get_json($url);
     $parameters = $payload['properties']['parameter'] ?? [];
-    file_put_contents($cachePath, json_encode($parameters));
+    if ($useCache) {
+        file_put_contents($cachePath, json_encode($parameters));
+    }
     return is_array($parameters) ? $parameters : [];
 }
 
@@ -560,7 +562,7 @@ function mm_run_export_job(string $jobId): void {
         $endIndex = min($totalCities, $startIndex + MM_EXPORT_CITY_BATCH_SIZE);
         for ($index = $startIndex; $index < $endIndex; $index++) {
             $city = $cities[$index];
-            $weather = $weatherDates ? mm_fetch_weather_range($city, $startDate, $endDate) : [];
+            $weather = $weatherDates ? mm_fetch_weather_range($city, $startDate, $endDate, false) : [];
             $plateDistance = $segments ? mm_plate_distance_km($city, $segments) : null;
             $nearPlate = $plateDistance !== null && $plateDistance <= MM_NEAR_PLATE_LIMIT_KM;
 
