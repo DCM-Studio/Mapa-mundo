@@ -18,10 +18,17 @@ if (!$job) {
     exit;
 }
 
-if (($job['state'] ?? '') === 'queued' && mm_job_seconds_since_update($job) > 10) {
+$state = (string) ($job['state'] ?? '');
+$secondsSinceUpdate = mm_job_seconds_since_update($job);
+$shouldRestart =
+    ($state === 'queued' && $secondsSinceUpdate > MM_QUEUED_JOB_STALE_SECONDS) ||
+    ($state === 'running' && $secondsSinceUpdate > MM_RUNNING_JOB_STALE_SECONDS);
+
+if ($shouldRestart) {
     $spawned = mm_spawn_export_worker($jobId);
     $job = mm_read_job($jobId) ?: $job;
     $job['restart_attempted'] = true;
+    $job['restart_reason'] = $state === 'running' ? 'stale-running' : 'queued';
     $job['restart_spawned'] = $spawned;
 }
 
