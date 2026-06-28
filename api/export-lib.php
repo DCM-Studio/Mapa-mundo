@@ -69,12 +69,9 @@ function mm_write_job(string $jobId, array $job): void {
 }
 
 function mm_php_binary_candidates(): array {
-    $candidates = [];
-    if (defined('PHP_BINARY') && PHP_BINARY) $candidates[] = PHP_BINARY;
+    $candidates = ['/usr/local/bin/php', '/usr/bin/php', 'php'];
     if (defined('PHP_BINDIR') && PHP_BINDIR) $candidates[] = rtrim(PHP_BINDIR, '/') . '/php';
-    $candidates[] = '/usr/local/bin/php';
-    $candidates[] = '/usr/bin/php';
-    $candidates[] = 'php';
+    if (defined('PHP_BINARY') && PHP_BINARY && stripos(basename(PHP_BINARY), 'lsphp') === false) $candidates[] = PHP_BINARY;
     return array_values(array_unique(array_filter($candidates)));
 }
 
