@@ -342,6 +342,74 @@ function mm_weather_value(array $weather, string $field, string $date): string {
     return $value > -900 ? (string) $value : '';
 }
 
+function mm_csv_header(): array {
+    return [
+        'terremoto_id', 'terremoto_fecha', 'terremoto_utc', 'terremoto_magnitud', 'terremoto_lugar',
+        'terremoto_latitud', 'terremoto_longitud', 'terremoto_profundidad_km', 'meteorologia_fecha',
+        'ciudad', 'pais', 'ciudad_latitud', 'ciudad_longitud', 'temperatura_promedio_c',
+        'humedad_promedio_pct', 'presion_atmosferica_kpa', 'fase_lunar', 'ciudad_cerca_limite_placa_300km',
+        'ciudad_distancia_limite_placa_km', 'fuente_meteorologica', 'fuente_sismos', 'fuente_placas', 'nota',
+    ];
+}
+
+function mm_checked_fputcsv($handle, array $row): void {
+    $result = fputcsv($handle, $row);
+    if ($result === false) {
+        throw new RuntimeException('No se pudo escribir una fila del CSV. Revise cuota o permisos de disco.');
+    }
+}
+
+function mm_checked_fflush($handle): void {
+    if (!fflush($handle)) {
+        throw new RuntimeException('No se pudo vaciar el buffer del CSV a disco. Revise cuota o permisos de disco.');
+    }
+}
+
+function mm_checked_fclose($handle): void {
+    if (!fclose($handle)) {
+        throw new RuntimeException('No se pudo cerrar correctamente el CSV. Revise cuota o permisos de disco.');
+    }
+}
+
+function mm_checked_rename(string $source, string $target): void {
+    if (!rename($source, $target)) {
+        throw new RuntimeException('No se pudo publicar el CSV final.');
+    }
+}
+
+function mm_validate_csv_file(string $path, int $expectedRows, int $expectedColumns): array {
+    if (!is_file($path)) {
+        return ['ok' => false, 'error' => 'El CSV no existe.'];
+    }
+
+    $handle = fopen($path, 'r');
+    if (!$handle) {
+        return ['ok' => false, 'error' => 'No se pudo abrir el CSV para validar.'];
+    }
+
+    $header = fgetcsv($handle);
+    if (!is_array($header) || count($header) !== $expectedColumns) {
+        fclose($handle);
+        return ['ok' => false, 'error' => 'El encabezado del CSV no tiene las columnas esperadas.'];
+    }
+
+    $rows = 0;
+    while (($row = fgetcsv($handle)) !== false) {
+        $rows++;
+        if (count($row) !== $expectedColumns) {
+            fclose($handle);
+            return ['ok' => false, 'error' => 'El CSV tiene una fila incompleta o corrupta en la fila de datos ' . $rows . '.'];
+        }
+    }
+    fclose($handle);
+
+    if ($rows !== $expectedRows) {
+        return ['ok' => false, 'error' => 'El CSV tiene ' . $rows . ' filas de datos; se esperaban ' . $expectedRows . '.'];
+    }
+
+    return ['ok' => true, 'rows' => $rows];
+}
+
 function mm_moon_phase(string $date): string {
     $selected = strtotime($date . ' 12:00:00 UTC') * 1000;
     $knownNewMoon = gmmktime(18, 14, 0, 1, 6, 2000) * 1000;
@@ -445,7 +513,12 @@ function mm_trim_csv_to_completed_cities(string $path, int $completedCities, int
 
     $lines = 0;
     while ($lines < $expectedLines && ($line = fgets($input)) !== false) {
-        fwrite($output, $line);
+        if (fwrite($output, $line) === false) {
+            fclose($input);
+            fclose($output);
+            @unlink($cleanPath);
+            throw new RuntimeException('No se pudo escribir el CSV temporal recortado.');
+        }
         $lines++;
     }
     fclose($input);
@@ -456,7 +529,7 @@ function mm_trim_csv_to_completed_cities(string $path, int $completedCities, int
         throw new RuntimeException('El CSV temporal tiene menos filas de las esperadas para reanudar.');
     }
 
-    rename($cleanPath, $path);
+    mm_checked_rename($cleanPath, $path);
 }
 
 function mm_run_export_job(string $jobId): void {
@@ -507,6 +580,13 @@ function mm_run_export_job(string $jobId): void {
         $job['filename'] = $filename;
 
         if (is_file($finalPath)) {
+            $validation = mm_validate_csv_file($finalPath, $totalEvents * $totalCities, count(mm_csv_header()));
+            if (!($validation['ok'] ?? false)) {
+                $job['state'] = 'failed';
+                $job['error'] = 'CSV final existente invalido: ' . ($validation['error'] ?? 'validacion fallida');
+                mm_write_job($jobId, $job);
+                return;
+            }
             $job['state'] = 'ready';
             $job['completed_cities'] = $totalCities;
             $job['rows_written'] = $totalEvents * $totalCities;
@@ -536,7 +616,11 @@ function mm_run_export_job(string $jobId): void {
         mm_write_job($jobId, $job);
 
         if ($startIndex >= $totalCities && is_file($tmpPath)) {
-            rename($tmpPath, $finalPath);
+            $validation = mm_validate_csv_file($tmpPath, $totalEvents * $totalCities, count(mm_csv_header()));
+            if (!($validation['ok'] ?? false)) {
+                throw new RuntimeException('CSV temporal invalido antes de publicar: ' . ($validation['error'] ?? 'validacion fallida'));
+            }
+            mm_checked_rename($tmpPath, $finalPath);
             $job['state'] = 'ready';
             $job['download_url'] = 'exports/' . $filename;
             mm_write_job($jobId, $job);
@@ -550,13 +634,7 @@ function mm_run_export_job(string $jobId): void {
         }
 
         if (!$append) {
-            fputcsv($handle, [
-                'terremoto_id', 'terremoto_fecha', 'terremoto_utc', 'terremoto_magnitud', 'terremoto_lugar',
-                'terremoto_latitud', 'terremoto_longitud', 'terremoto_profundidad_km', 'meteorologia_fecha',
-                'ciudad', 'pais', 'ciudad_latitud', 'ciudad_longitud', 'temperatura_promedio_c',
-                'humedad_promedio_pct', 'presion_atmosferica_kpa', 'fase_lunar', 'ciudad_cerca_limite_placa_300km',
-                'ciudad_distancia_limite_placa_km', 'fuente_meteorologica', 'fuente_sismos', 'fuente_placas', 'nota',
-            ]);
+            mm_checked_fputcsv($handle, mm_csv_header());
         }
 
         $endIndex = min($totalCities, $startIndex + MM_EXPORT_CITY_BATCH_SIZE);
@@ -573,7 +651,7 @@ function mm_run_export_job(string $jobId): void {
                     ? 'Meteorologia correspondiente al dia previo al terremoto'
                     : 'Sin datos meteorologicos NASA POWER para ' . $weatherDate . '; disponible desde ' . MM_WEATHER_START_DATE;
 
-                fputcsv($handle, [
+                mm_checked_fputcsv($handle, [
                     $event['id'],
                     $event['date'],
                     $event['time_iso'],
@@ -602,11 +680,11 @@ function mm_run_export_job(string $jobId): void {
             }
 
             $job['completed_cities'] = $index + 1;
-            fflush($handle);
+            mm_checked_fflush($handle);
             mm_write_job($jobId, $job);
         }
 
-        fclose($handle);
+        mm_checked_fclose($handle);
         unset($handle);
 
         if ($endIndex < $totalCities) {
@@ -619,7 +697,11 @@ function mm_run_export_job(string $jobId): void {
             return;
         }
 
-        rename($tmpPath, $finalPath);
+        $validation = mm_validate_csv_file($tmpPath, $totalEvents * $totalCities, count(mm_csv_header()));
+        if (!($validation['ok'] ?? false)) {
+            throw new RuntimeException('CSV temporal invalido antes de publicar: ' . ($validation['error'] ?? 'validacion fallida'));
+        }
+        mm_checked_rename($tmpPath, $finalPath);
         $job['state'] = 'ready';
         $job['completed_cities'] = $totalCities;
         $job['rows_written'] = $totalEvents * $totalCities;
