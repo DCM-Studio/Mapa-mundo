@@ -6,7 +6,12 @@ require __DIR__ . '/export-lib.php';
 mm_ensure_dirs();
 mm_cleanup_old_exports();
 
-if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+$method = (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET');
+$isAllowedRequest =
+    $method === 'POST' ||
+    ($method === 'GET' && isset($_GET['start']) && (string) $_GET['start'] === '1');
+
+if (!$isAllowedRequest) {
     mm_json_response(['ok' => false, 'error' => 'Metodo no permitido.'], 405);
     exit;
 }
