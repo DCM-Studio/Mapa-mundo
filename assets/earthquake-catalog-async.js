@@ -3,9 +3,13 @@
 (() => {
   const buttonId = "exportEarthquakeCatalogCsvButton";
   const statusKey = "mapa_mundo_m7_export_job_id";
+  const latestJobToken = "__latest__";
   const statusText = document.getElementById("statusText");
   const progress = document.getElementById("loadProgress");
   let pollTimer = 0;
+
+  window.MapaMundoServerCatalogExport = true;
+  window.MapaMundoCatalogExportHandlesDownload = true;
 
   document.addEventListener("click", handleExportClick, true);
   window.addEventListener("DOMContentLoaded", resumeSavedJob);
@@ -13,7 +17,10 @@
 
   function handleExportClick(event) {
     const button = event.target?.closest?.(`#${buttonId}`);
-    if (!button) return;
+    if (!button) {
+      return;
+    }
+
     event.preventDefault();
     event.stopImmediatePropagation();
     void startExport(button);
@@ -30,7 +37,9 @@
         cache: "no-store",
       });
       const payload = await response.json();
-      if (!response.ok || !payload.ok) throw new Error(payload.error || `Servidor respondio ${response.status}.`);
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || `Servidor respondio ${response.status}.`);
+      }
 
       localStorage.setItem(statusKey, payload.job_id);
       setStatus("Exportacion creada. Puedes cerrar esta pagina y volver despues.", 0.05);
@@ -43,25 +52,43 @@
   }
 
   function resumeSavedJob() {
-    const jobId = localStorage.getItem(statusKey);
     const button = document.getElementById(buttonId);
-    if (!jobId || !button) return;
-    pollJob(jobId, button, true);
+    if (!button) {
+      return;
+    }
+
+    const jobId = localStorage.getItem(statusKey);
+    pollJob(jobId || latestJobToken, button, true, { silentMissing: !jobId });
   }
 
-  function pollJob(jobId, button, isResume = false) {
+  function pollJob(jobId, button, isResume = false, options = {}) {
     window.clearTimeout(pollTimer);
-    if (isResume) setStatus("Revisando exportacion historica pendiente...", 0.05);
+
+    if (isResume && !options.silentMissing) {
+      setStatus("Revisando exportacion historica pendiente...", 0.05);
+    }
 
     const tick = async () => {
       try {
-        const url = `api/export-status.php?id=${encodeURIComponent(jobId)}&t=${Date.now()}`;
+        const url =
+          jobId === latestJobToken
+            ? `api/export-status.php?latest=1&t=${Date.now()}`
+            : `api/export-status.php?id=${encodeURIComponent(jobId)}&t=${Date.now()}`;
         const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+        if (response.status === 404 && options.silentMissing) {
+          return;
+        }
+
         const payload = await response.json();
-        if (!response.ok || !payload.ok) throw new Error(payload.error || `Servidor respondio ${response.status}.`);
+        if (!response.ok || !payload.ok) {
+          throw new Error(payload.error || `Servidor respondio ${response.status}.`);
+        }
 
         renderJobStatus(payload, button);
-        if (payload.state === "ready" || payload.state === "failed") return;
+        if (payload.state === "ready" || payload.state === "failed") {
+          return;
+        }
+
         pollTimer = window.setTimeout(tick, 5000);
       } catch (error) {
         console.error(error);
@@ -88,6 +115,7 @@
 
     if (payload.state === "failed") {
       setStatus(`La exportacion historica fallo: ${payload.error || "sin detalle"}`, 0);
+      localStorage.removeItem(statusKey);
       setBusy(button, false);
       return;
     }
@@ -98,7 +126,9 @@
 
   function showPreparedLink(payload) {
     const button = document.getElementById(buttonId);
-    if (!button?.parentElement || !payload.download_url) return;
+    if (!button?.parentElement || !payload.download_url) {
+      return;
+    }
 
     let link = document.getElementById("catalogAsyncDownloadLink");
     if (!link) {
@@ -125,13 +155,20 @@
   }
 
   function setBusy(button, isBusy) {
-    if (!button) return;
+    if (!button) {
+      return;
+    }
+
     button.disabled = isBusy;
     button.textContent = isBusy ? "Preparando CSV M7+..." : "Exportar CSV M7+ historico";
   }
 
   function setStatus(message, value) {
-    if (statusText) statusText.textContent = message;
-    if (progress) progress.value = value;
+    if (statusText) {
+      statusText.textContent = message;
+    }
+    if (progress) {
+      progress.value = value;
+    }
   }
 })();
