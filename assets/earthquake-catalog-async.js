@@ -25,8 +25,7 @@
     setStatus("Creando exportacion historica en servidor...", 0.02);
 
     try {
-      const response = await fetch("api/start-export.php", {
-        method: "POST",
+      const response = await fetch(`api/start-export.php?start=1&t=${Date.now()}`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
       });
