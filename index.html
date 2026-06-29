@@ -53,7 +53,7 @@
             <input id="dateInput" type="date" min="1981-01-01" required />
           </label>
           <label>
-            Fechas por terremotos recientes M7+
+            Fechas por terremotos M7+ desde 1900
             <select id="earthquakePresetSelect">
               <option value="">Cargando últimos terremotos M7+...</option>
             </select>
@@ -114,7 +114,7 @@
           </label>
           <label class="check-row">
             <input id="plateCityFilterToggle" type="checkbox" />
-            Sólo ciudades cerca de placas
+            Filtrar puntos cercanos visualmente a placas
           </label>
         </section>
 
@@ -236,7 +236,7 @@
         <div class="map-toolbar">
           <div>
             <p id="mapKicker">Sin datos cargados</p>
-            <h2 id="mapTitle">Mapa oficial de referencia mundial</h2>
+            <h2 id="mapTitle">Mapa de referencia mundial</h2>
           </div>
           <div id="legend" class="legend" aria-label="Leyenda"></div>
         </div>
@@ -245,8 +245,8 @@
         </div>
         <div id="cityTooltip" class="tooltip" hidden></div>
         <p class="source-note">
-          Meteorología: NASA POWER Daily API. Base cartográfica: Natural Earth / world-atlas.
-          La fase lunar se calcula localmente para la fecha seleccionada.
+          Meteorología: NASA POWER Daily API. Sismos: USGS Earthquake Catalog API. Placas: PB2002 vía fraxen/tectonicplates. Base cartográfica: Natural Earth / world-atlas.
+          Fase lunar: cálculo local aproximado para la fecha seleccionada.
         </p>
         <section id="earthquakeDetails" class="earthquake-details" hidden>
           <h2>Terremotos M 6.5+ del día seleccionado</h2>
