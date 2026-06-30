@@ -17,7 +17,7 @@ Incluye:
 - Secuencia con precarga de frames: el mapa no queda en blanco entre una fecha y la siguiente.
 - Barra de tiempo sobre el mapa para pausar, mover manualmente el frame y reflejar datos/colores/textos del frame seleccionado.
 - Secuencia de terremotos configurable por rango de fechas, magnitud minima Mx y dias previos/posteriores.
-- La secuencia muestra todas las ciudades disponibles segun el filtro de pais y los datos seleccionados.
+- La secuencia muestra todas las ciudades disponibles/cargadas por la app segun el filtro de pais y los datos seleccionados.
 - Capas seleccionables de temperatura promedio, humedad promedio, presion atmosferica y fase lunar.
 - Colores configurables por variable.
 - Mapa mundial con ciudades principales distribuidas globalmente.
