@@ -1,0 +1,87 @@
+
+/* Mapa Mundo 2.0: pestañas, filtros y secuencia */
+select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  padding: 9px 10px;
+  font: inherit;
+}
+
+.tab-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.tab-button {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  padding: 7px 10px;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.tab-button.is-active {
+  border-color: var(--accent);
+  background: rgba(15, 107, 122, 0.1);
+  color: var(--accent-strong);
+}
+
+.tab-panels {
+  display: grid;
+  gap: 14px;
+}
+
+.tab-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.tab-panel > .control-group:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.v2-control-group {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.two-col,
+.sequence-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.sequence-actions {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.sequence-panel .hint {
+  border: 1px solid rgba(15, 107, 122, 0.16);
+  border-radius: 8px;
+  background: rgba(15, 107, 122, 0.06);
+  padding: 10px;
+}
+
+.remember-row {
+  margin-top: -2px;
+}
+
+@media (max-width: 520px) {
+  .two-col,
+  .sequence-actions,
+  .tab-nav {
+    grid-template-columns: 1fr;
+  }
+}
