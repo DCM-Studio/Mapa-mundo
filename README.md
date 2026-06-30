@@ -14,7 +14,10 @@ Incluye:
 - Controles reorganizados en pestanas: visualizacion, filtros, secuencia y colores.
 - Filtros por pais para ciudades y por pais/lugar USGS para terremotos, con opcion predeterminada `Todos los paises`.
 - Secuencia automatica tipo play/pausa/detener para recorrer terremotos en orden cronologico o clima/luna dia por dia.
-- Secuencia de terremotos configurable por rango de fechas, magnitud minima Mx, dias previos/posteriores y ciudades cercanas/todas.
+- Secuencia con precarga de frames: el mapa no queda en blanco entre una fecha y la siguiente.
+- Barra de tiempo sobre el mapa para pausar, mover manualmente el frame y reflejar datos/colores/textos del frame seleccionado.
+- Secuencia de terremotos configurable por rango de fechas, magnitud minima Mx y dias previos/posteriores.
+- La secuencia muestra todas las ciudades disponibles segun el filtro de pais y los datos seleccionados.
 - Capas seleccionables de temperatura promedio, humedad promedio, presion atmosferica y fase lunar.
 - Colores configurables por variable.
 - Mapa mundial con ciudades principales distribuidas globalmente.
@@ -48,6 +51,7 @@ Los sismos se consultan en USGS Earthquake Catalog API. El filtro de pais de ter
 - Para seguridad real en `dcm.cl/Mapa-mundo`, proteger la carpeta del hosting con `.htpasswd`, Cloudflare Access, un panel del hosting o un backend.
 - NASA POWER entrega datos por coordenada. Cargar literalmente todas las ciudades del mundo desde el navegador produciria miles de solicitudes y podria ser bloqueado. Esta version usa una lista curada de ciudades principales y suma los epicentros USGS M7+ disponibles en el desplegable historico.
 - La secuencia limita inicialmente a 200 terremotos o 365 dias para evitar cargas excesivas desde el navegador.
+- La precarga de secuencia puede tardar si se elige un rango largo con meteorologia para muchas ciudades; una vez preparada, la barra de tiempo se mueve sobre frames ya cacheados en el navegador.
 - La presion `PS` corresponde a presion de superficie del punto, no presion reducida al nivel del mar.
 
 ## Despliegue
