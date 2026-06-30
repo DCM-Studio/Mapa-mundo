@@ -481,7 +481,7 @@
       controls.play.textContent = player.ready && !player.playing && !player.preparing ? "▶ Reanudar" : "▶ Play";
     }
     if (controls.pause) controls.pause.disabled = !player.playing;
-    if (controls.stop) controls.stop.disabled = !(player.preparing || player.playing || player.frames.length);
+    if (controls.stop) controls.stop.disabled = !(player.preparing || player.playing || player.ready || player.frames.length);
     if (controls.timeline) controls.timeline.disabled = player.preparing || !player.ready;
   }
 
