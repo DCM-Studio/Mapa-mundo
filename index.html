@@ -6,7 +6,7 @@
     <title>Mapa Mundo Meteorologico</title>
     <meta
       name="description"
-      content="Web app para visualizar datos meteorologicos historicos diarios por ciudad usando NASA POWER."
+      content="Web app para visualizar meteorología diaria con NASA POWER, sismos USGS, placas PB2002 y fase lunar aproximada por ciudad."
     />
     <link rel="stylesheet" href="assets/styles.css" />
   </head>
@@ -40,7 +40,7 @@
       <aside class="sidebar" aria-label="Panel de ajustes">
         <div class="brand-row">
           <div>
-            <p class="eyebrow">NASA POWER</p>
+            <p class="eyebrow">NASA POWER · USGS</p>
             <h1>Mapa Mundo</h1>
           </div>
           <button id="logoutButton" class="ghost-button" type="button">Salir</button>
@@ -55,7 +55,7 @@
           <label>
             Fechas por terremotos M7+ desde 1900
             <select id="earthquakePresetSelect">
-              <option value="">Cargando últimos terremotos M7+...</option>
+              <option value="">Cargando terremotos M7+ desde 1900...</option>
             </select>
           </label>
           <p class="hint">Datos diarios disponibles desde 1981-01-01 hasta fecha cercana al presente.</p>
@@ -114,7 +114,7 @@
           </label>
           <label class="check-row">
             <input id="plateCityFilterToggle" type="checkbox" />
-            Filtrar puntos cercanos visualmente a placas
+            Filtrar ciudades a 300 km de placas
           </label>
         </section>
 

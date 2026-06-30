@@ -619,7 +619,7 @@ function clearMap() {
   labelGroup.selectAll("*").remove();
   elements.legend.innerHTML = "";
   elements.mapKicker.textContent = "Sin datos cargados";
-  elements.mapTitle.textContent = "Mapa oficial de referencia mundial";
+  elements.mapTitle.textContent = "Mapa de referencia mundial";
   hideTooltip();
   setStatus("Mapa limpio.", 0);
 }
@@ -683,6 +683,12 @@ async function exportImage() {
     .metric-area{mix-blend-mode:multiply;opacity:.38}
     .city-dot{fill:#102b35;stroke:#fff;stroke-width:1.15}
     .city-label{paint-order:stroke;stroke:rgba(255,255,255,.92);stroke-width:4px;fill:#102b35;font-size:10px;font-weight:800;font-family:Arial,sans-serif}
+    .tectonic-plate-boundary-shadow{fill:none;stroke:rgba(255,255,255,.92);stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+    .tectonic-plate-boundary{fill:none;stroke:#6f1111;stroke-width:1.35;stroke-dasharray:5 4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+    .earthquake-dot{stroke:#fff;stroke-width:1.8;pointer-events:none}
+    .earthquake-label{paint-order:stroke;stroke:rgba(255,255,255,.95);stroke-width:4px;fill:#151515;font-size:11px;font-weight:900;font-family:Arial,sans-serif;pointer-events:none}
+    .moon-phase-marker{pointer-events:none}
+    .moon-phase-marker circle,.moon-phase-marker path{shape-rendering:geometricPrecision}
   `;
   clone.insertBefore(style, clone.firstChild);
 
