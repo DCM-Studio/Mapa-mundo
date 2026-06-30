@@ -9,6 +9,7 @@
       content="Web app para visualizar meteorología diaria con NASA POWER, sismos USGS, placas PB2002 y fase lunar aproximada por ciudad."
     />
     <link rel="stylesheet" href="assets/styles.css" />
+    <link rel="stylesheet" href="assets/ui-v2.css" />
   </head>
   <body>
     <main id="loginView" class="login-view" aria-labelledby="loginTitle">
@@ -29,6 +30,10 @@
               autocomplete="current-password"
               required
             />
+          </label>
+          <label class="check-row remember-row">
+            <input id="rememberDevice" type="checkbox" />
+            Recordar este equipo
           </label>
           <p id="loginError" class="form-error" role="alert"></p>
           <button type="submit" class="primary-button">Entrar</button>
@@ -259,6 +264,7 @@
     <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
     <script src="assets/app.js"></script>
+    <script src="assets/login-persistence.js"></script>
     <script src="assets/hotfix.js"></script>
     <script src="assets/label-controls.js"></script>
     <script src="assets/tectonic-plates.js"></script>
@@ -269,5 +275,6 @@
     <script src="assets/map-view-controls.js"></script>
     <script src="assets/earthquakes.js"></script>
     <script src="assets/csv-export-extended.js"></script>
+    <script src="assets/ui-v2.js"></script>
   </body>
 </html>
