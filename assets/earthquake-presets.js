@@ -13,6 +13,7 @@
   const WEATHER_START_DATE = "1981-01-01";
   const WEATHER_PARAMETERS = ["T2M", "RH2M", "PS"];
   const NEAR_PLATE_LIMIT_KM = 300;
+  const SERVER_CATALOG_EXPORT_ENABLED = true;
 
   if (!select || !dateInput) {
     return;
@@ -21,6 +22,7 @@
   let applyingPreset = false;
   let catalogDownloadUrl = "";
   const catalogExportButton = createCatalogExportButton();
+  window.MapaMundoCatalogExportHandlesDownload = Boolean(catalogExportButton);
 
   select.addEventListener("change", () => {
     const option = select.selectedOptions[0];
@@ -51,10 +53,12 @@
 
   loadPresets();
 
-  catalogExportButton?.addEventListener("click", (event) => {
-    event.preventDefault();
-    void exportCatalogCsv();
-  });
+  if (!SERVER_CATALOG_EXPORT_ENABLED) {
+    catalogExportButton?.addEventListener("click", (event) => {
+      event.preventDefault();
+      void exportCatalogCsv();
+    });
+  }
 
   async function loadPresets() {
     setPlaceholder("Cargando terremotos M7+ desde 1900...");
@@ -69,6 +73,7 @@
       }
 
       renderOptions(events);
+      publishEpicenterCities(events);
     } catch (error) {
       console.error(error);
       setPlaceholder("No se pudieron cargar terremotos USGS");
@@ -121,6 +126,13 @@
     };
   }
 
+  function publishEpicenterCities(events) {
+    const api = window.MapaMundoStaticData;
+    if (api?.setEarthquakeEpicenters) {
+      api.setEarthquakeEpicenters(events);
+    }
+  }
+
   function renderOptions(events) {
     select.innerHTML = "";
     select.appendChild(new Option("Elegir fecha por terremoto M7+ desde 1900 (USGS)", ""));
@@ -169,6 +181,8 @@
   }
 
   async function exportCatalogCsv() {
+    if (SERVER_CATALOG_EXPORT_ENABLED) return;
+
     const events = getListedEarthquakes();
 
     if (!events.length) {
@@ -182,7 +196,7 @@
       setExportStatus("Preparando ciudades y límites de placas...", 0.03);
       const cities = await loadCitiesFromApp();
       const plateDistances = await getPlateDistances(cities);
-      const weatherDates = [...new Set(events.map((event) => event.date).filter((date) => date >= WEATHER_START_DATE))].sort();
+      const weatherDates = [...new Set(events.map((event) => event.weatherDate).filter((date) => date >= WEATHER_START_DATE))].sort();
       const weatherByCity = weatherDates.length ? await fetchWeatherByCity(cities, weatherDates) : new Map();
 
       setExportStatus("Generando CSV histórico M7+...", 0.96);
@@ -207,6 +221,7 @@
       .map((option, index) => ({
         id: option.value || `m7-${index}`,
         date: option.dataset.date,
+        weatherDate: previousDate(option.dataset.date),
         timeIso: option.dataset.timeIso || `${option.dataset.date}T00:00:00.000Z`,
         magnitude: numeric(option.dataset.magnitude),
         place: option.dataset.place || option.textContent,
@@ -217,6 +232,11 @@
   }
 
   async function loadCitiesFromApp() {
+    const api = window.MapaMundoStaticData;
+    if (api?.getCities) {
+      return api.getCities();
+    }
+
     const response = await fetch("assets/app.js", { cache: "no-store" });
     if (!response.ok) {
       throw new Error("No se pudo leer la lista de ciudades de la app.");
@@ -378,6 +398,7 @@
       "terremoto_latitud",
       "terremoto_longitud",
       "terremoto_profundidad_km",
+      "meteorologia_fecha",
       "ciudad",
       "pais",
       "ciudad_latitud",
@@ -396,12 +417,13 @@
     const rows = [header];
 
     events.forEach((event) => {
-      const ymd = compactDate(event.date);
-      const moon = moonPhaseForDate(event.date);
+      const weatherDate = event.weatherDate || previousDate(event.date);
+      const ymd = compactDate(weatherDate);
+      const moon = moonPhaseForDate(weatherDate);
 
       cities.forEach((city) => {
         const cityWeather = weatherByCity.get(cityKey(city)) || {};
-        const weatherAvailable = event.date >= WEATHER_START_DATE;
+        const weatherAvailable = weatherDate >= WEATHER_START_DATE;
         const plateDistance = plateDistances.get(cityKey(city));
         const nearPlate = Number.isFinite(plateDistance) && plateDistance <= NEAR_PLATE_LIMIT_KM;
         const note = weatherAvailable ? "" : `Sin datos meteorológicos NASA POWER antes de ${WEATHER_START_DATE}`;
@@ -415,6 +437,7 @@
           valueOrBlank(event.latitude),
           valueOrBlank(event.longitude),
           valueOrBlank(event.depth),
+          weatherDate,
           city.name,
           city.country,
           city.lat,
@@ -464,6 +487,12 @@
 
   function compactDate(date) {
     return date.replaceAll("-", "");
+  }
+
+  function previousDate(date) {
+    const value = new Date(`${date}T00:00:00Z`);
+    value.setUTCDate(value.getUTCDate() - 1);
+    return value.toISOString().slice(0, 10);
   }
 
   function numeric(value) {

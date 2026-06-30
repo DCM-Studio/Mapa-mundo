@@ -131,6 +131,8 @@ const CITIES = [
   { name: "Reykjavik", country: "Islandia", lat: 64.1466, lon: -21.9426 },
 ];
 
+const DATA_API = initializeStaticDataApi();
+
 const state = {
   countries: null,
   projection: null,
@@ -337,9 +339,10 @@ async function applySettings() {
     }
 
     state.activeAbortController = new AbortController();
+    const cities = getAnalysisCities();
     const weatherRows = needsWeather
-      ? await fetchWeatherForCities(date, state.activeAbortController.signal)
-      : CITIES.map((city) => ({ city, values: {}, moon }));
+      ? await fetchWeatherForCities(cities, date, state.activeAbortController.signal)
+      : cities.map((city) => ({ city, values: {}, moon }));
 
     state.weatherRows = weatherRows.map((row) => ({
       ...row,
@@ -360,10 +363,10 @@ async function applySettings() {
   }
 }
 
-async function fetchWeatherForCities(date, signal) {
+async function fetchWeatherForCities(cities, date, signal) {
   const rows = [];
   let completed = 0;
-  const tasks = CITIES.map((city) => async () => {
+  const tasks = cities.map((city) => async () => {
     let values = { T2M: null, RH2M: null, PS: null };
     let error = null;
 
@@ -375,7 +378,7 @@ async function fetchWeatherForCities(date, signal) {
     }
 
     completed += 1;
-    setStatus(`Cargando NASA POWER: ${completed}/${CITIES.length} ciudades...`, completed / CITIES.length);
+    setStatus(`Cargando NASA POWER: ${completed}/${cities.length} ciudades...`, completed / cities.length);
     rows.push({ city, values, error });
   });
 
@@ -793,4 +796,82 @@ function debounce(callback, delay) {
     clearTimeout(timer);
     timer = setTimeout(() => callback(...args), delay);
   };
+}
+
+
+function initializeStaticDataApi() {
+  const existingApi = window.MapaMundoStaticData || {};
+  const api = {
+    ...existingApi,
+    baseCities: CITIES,
+    earthquakeEpicenterCities: Array.isArray(existingApi.earthquakeEpicenterCities)
+      ? existingApi.earthquakeEpicenterCities
+      : [],
+    get cities() {
+      return this.getCities();
+    },
+    getCities() {
+      return combineCities(CITIES, this.earthquakeEpicenterCities || []);
+    },
+    setEarthquakeEpicenters(events) {
+      this.earthquakeEpicenterCities = normalizeEpicenterCities(events);
+      window.dispatchEvent(new CustomEvent("mapaMundo:citiesChanged", {
+        detail: {
+          baseCities: CITIES.length,
+          epicenterCities: this.earthquakeEpicenterCities.length,
+          totalCities: this.getCities().length,
+        },
+      }));
+      return this.earthquakeEpicenterCities;
+    },
+  };
+
+  window.MapaMundoStaticData = api;
+  return api;
+}
+
+function getAnalysisCities() {
+  return DATA_API?.getCities ? DATA_API.getCities() : CITIES;
+}
+
+function combineCities(baseCities, epicenterCities) {
+  const combined = [];
+  const seen = new Set();
+
+  [...baseCities, ...epicenterCities].forEach((city) => {
+    if (!city || !Number.isFinite(Number(city.lat)) || !Number.isFinite(Number(city.lon))) return;
+    const key = `${String(city.name || "").trim().toLowerCase()}|${String(city.country || "").trim().toLowerCase()}|${Number(city.lat).toFixed(4)}|${Number(city.lon).toFixed(4)}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    combined.push(city);
+  });
+
+  return combined;
+}
+
+function normalizeEpicenterCities(events) {
+  const byLocation = new Map();
+
+  events.forEach((event) => {
+    const latitude = Number(event.latitude);
+    const longitude = Number(event.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+
+    const place = String(event.place || "Ubicacion USGS no informada").trim();
+    const locationKey = `${latitude.toFixed(3)}|${longitude.toFixed(3)}|${place.toLowerCase()}`;
+    if (byLocation.has(locationKey)) return;
+
+    byLocation.set(locationKey, {
+      name: `Epicentro M7+ - ${place}`,
+      country: "USGS",
+      lat: latitude,
+      lon: longitude,
+      source: "USGS Earthquake Catalog API",
+      earthquakeId: event.id || "",
+      earthquakeDate: event.dateIso || event.date || "",
+      earthquakeMagnitude: Number.isFinite(Number(event.magnitude)) ? Number(event.magnitude) : "",
+    });
+  });
+
+  return Array.from(byLocation.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
