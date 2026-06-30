@@ -45,8 +45,24 @@
 
   let currentDate = "";
   let currentMinMagnitude = getMinMagnitude();
+  let allEarthquakes = [];
   let earthquakes = [];
+  let countryFilter = "";
   let loading = false;
+
+  window.MapaMundoEarthquakes = {
+    reload: () => loadForSelectedDate(true),
+    setCountryFilter(value) {
+      countryFilter = String(value || "").trim();
+      earthquakes = filterEarthquakes(allEarthquakes);
+      drawEarthquakes();
+      renderDetails();
+      if (toggle.checked && currentDate !== dateInput.value) {
+        void loadForSelectedDate(true);
+      }
+    },
+    getCountryFilter: () => countryFilter,
+  };
 
   toggle.addEventListener("change", () => {
     group.attr("display", toggle.checked ? null : "none");
@@ -78,7 +94,8 @@
     const minMagnitude = getMinMagnitude();
     if (!date || loading) return;
 
-    if (!forceReload && date === currentDate && minMagnitude === currentMinMagnitude && earthquakes.length) {
+    if (!forceReload && date === currentDate && minMagnitude === currentMinMagnitude && allEarthquakes.length) {
+      earthquakes = filterEarthquakes(allEarthquakes);
       drawEarthquakes();
       renderDetails();
       return;
@@ -91,14 +108,16 @@
 
     try {
       const payload = await fetchEarthquakes(date, minMagnitude);
-      earthquakes = (payload.features || [])
+      allEarthquakes = (payload.features || [])
         .map(normalizeFeature)
         .filter(Boolean)
         .sort((a, b) => b.magnitude - a.magnitude);
+      earthquakes = filterEarthquakes(allEarthquakes);
       drawEarthquakes();
       renderDetails();
     } catch (error) {
       console.error(error);
+      allEarthquakes = [];
       earthquakes = [];
       drawEarthquakes();
       setSummary("No se pudieron cargar los terremotos desde USGS.");
@@ -155,6 +174,10 @@
     };
   }
 
+  function filterEarthquakes(items) {
+    return items.filter((quake) => matchesCountry(quake.place, countryFilter));
+  }
+
   function drawEarthquakes() {
     group.attr("display", toggle.checked ? null : "none");
 
@@ -208,13 +231,15 @@
     details.hidden = !toggle.checked;
 
     if (!earthquakes.length) {
-      setSummary(`No hay terremotos M ${currentMinMagnitude.toFixed(1)}+ registrados por USGS para ${formatDate(currentDate)}.`);
+      const countryText = countryFilter ? ` para el filtro ${countryFilter}` : "";
+      setSummary(`No hay terremotos M ${currentMinMagnitude.toFixed(1)}+ registrados por USGS${countryText} para ${formatDate(currentDate)}.`);
       list.innerHTML = "";
       return;
     }
 
+    const countryText = countryFilter ? ` filtrado por ${countryFilter}` : "";
     setSummary(
-      `${earthquakes.length} terremoto${earthquakes.length === 1 ? "" : "s"} M ${currentMinMagnitude.toFixed(1)}+ registrados por USGS para ${formatDate(currentDate)}.`,
+      `${earthquakes.length} terremoto${earthquakes.length === 1 ? "" : "s"} M ${currentMinMagnitude.toFixed(1)}+${countryText} registrados por USGS para ${formatDate(currentDate)}.`,
     );
     list.className = "earthquake-list";
     list.innerHTML = earthquakes.map(renderEarthquakeItem).join("");
@@ -269,4 +294,41 @@
       timeZone: "UTC",
     });
   }
+
+  function matchesCountry(place, country) {
+    if (!country) return true;
+    const haystack = normalize(place);
+    return countryTerms(country).some((term) => haystack.includes(term));
+  }
+
+  function countryTerms(country) {
+    const key = normalize(country);
+    return [...new Set([key, ...(ALIASES[key] || []).map(normalize)])].filter(Boolean);
+  }
+
+  function normalize(value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  }
+
+  const ALIASES = {
+    brasil: ["brazil"],
+    mexico: ["baja california", "oaxaca", "guerrero", "chiapas"],
+    "estados unidos": ["united states", "usa", "alaska", "california", "hawaii", "aleutian", "puerto rico"],
+    canada: ["british columbia", "yukon"],
+    japon: ["japan", "honshu", "hokkaido", "kyushu", "ryukyu"],
+    indonesia: ["sumatra", "java", "sulawesi", "banda sea", "molucca sea"],
+    filipinas: ["philippines", "mindanao", "luzon"],
+    china: ["xinjiang", "tibet", "sichuan", "yunnan"],
+    "nueva zelanda": ["new zealand", "kermadec"],
+    rusia: ["russia", "kamchatka", "kuril", "sakhalin"],
+    turquia: ["turkey", "turkiye"],
+    grecia: ["greece", "crete"],
+    "papua nueva guinea": ["papua new guinea", "new britain", "bougainville"],
+    "islas salomon": ["solomon islands"],
+  };
 })();
