@@ -17,11 +17,11 @@ Incluye:
 - Secuencia con precarga de frames: el mapa no queda en blanco entre una fecha y la siguiente.
 - Barra de tiempo sobre el mapa para pausar, mover manualmente el frame y reflejar datos/colores/textos del frame seleccionado.
 - Secuencia de terremotos configurable por rango de fechas, magnitud minima Mx y dias previos/posteriores.
-- La secuencia muestra todas las ciudades visibles/cargadas por la app segun el filtro de pais y los datos seleccionados.
+- La secuencia muestra todos los puntos visibles/cargados por la app segun el filtro de pais y los datos seleccionados.
 - Capas seleccionables de temperatura promedio, humedad promedio, presion atmosferica y fase lunar.
 - Colores configurables por variable.
 - Mapa mundial con ciudades principales distribuidas globalmente.
-- Separacion entre ciudades visibles del mapa diario y epicentros M7+ historicos usados para catalogo/analisis.
+- Inclusion dinamica de epicentros USGS M7+ desde 1900 como puntos de analisis junto a las ciudades base.
 - Carga de datos diarios desde NASA POWER Daily API.
 - Limpieza del mapa.
 - Exportacion de imagen PNG del mapa visible.
@@ -50,9 +50,9 @@ Los sismos se consultan en USGS Earthquake Catalog API. El filtro de pais de ter
 - La app es estatica. El login incluido en frontend sirve como barrera de uso, pero no es seguridad real porque las credenciales quedan en el codigo descargable.
 - La opcion `Recordar este equipo` guarda el estado de acceso en el navegador local. No reemplaza una proteccion real de carpeta o backend.
 - Para seguridad real en `dcm.cl/Mapa-mundo`, proteger la carpeta del hosting con `.htpasswd`, Cloudflare Access, un panel del hosting o un backend.
-- NASA POWER entrega datos por coordenada. Cargar literalmente todas las ciudades del mundo desde el navegador produciria miles de solicitudes y podria ser bloqueado. Esta version usa una lista curada de ciudades principales para visualizacion diaria. Los epicentros USGS M7+ se mantienen separados para el catalogo historico y exportaciones.
+- NASA POWER entrega datos por coordenada. Cargar literalmente todas las ciudades del mundo desde el navegador produciria miles de solicitudes y podria ser bloqueado. Esta version usa una lista curada de ciudades principales y suma epicentros USGS M7+ como puntos de analisis.
 - La secuencia limita inicialmente a 200 terremotos o 365 dias para evitar cargas excesivas desde el navegador.
-- La precarga de secuencia puede tardar si se elige un rango largo con meteorologia para muchas ciudades; una vez preparada, la barra de tiempo se mueve sobre frames ya cacheados en el navegador.
+- La precarga de secuencia puede tardar si se elige un rango largo con meteorologia para muchas ciudades/puntos; una vez preparada, la barra de tiempo se mueve sobre frames ya cacheados en el navegador.
 - La presion `PS` corresponde a presion de superficie del punto, no presion reducida al nivel del mar.
 
 ## Despliegue
