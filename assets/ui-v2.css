@@ -1,0 +1,128 @@
+/* Mapa Mundo 2.0: pestanas, filtros y secuencia */
+select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  padding: 9px 10px;
+  font: inherit;
+}
+
+.tab-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.tab-button {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  padding: 7px 10px;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.tab-button.is-active {
+  border-color: var(--accent);
+  background: rgba(15, 107, 122, 0.1);
+  color: var(--accent-strong);
+}
+
+.tab-panels {
+  display: grid;
+  gap: 14px;
+}
+
+.tab-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.tab-panel > .control-group:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.v2-control-group {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.two-col,
+.sequence-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.sequence-actions {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.sequence-panel .hint {
+  border: 1px solid rgba(15, 107, 122, 0.16);
+  border-radius: 8px;
+  background: rgba(15, 107, 122, 0.06);
+  padding: 10px;
+}
+
+.remember-row {
+  margin-top: -2px;
+}
+
+.sequence-timeline-overlay {
+  position: absolute;
+  z-index: 8;
+  top: 12px;
+  right: 14px;
+  left: 14px;
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(15, 107, 122, 0.22);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 24px rgba(31, 44, 52, 0.16);
+  padding: 10px 12px;
+}
+
+.sequence-timeline-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.sequence-timeline-head span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+#sequenceTimeline {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+@media (max-width: 520px) {
+  .two-col,
+  .sequence-actions,
+  .tab-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .sequence-timeline-head {
+    align-items: start;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mapa Mundo Meteorologico</title>
+    <meta
+      name="description"
+      content="Web app para visualizar meteorología diaria con NASA POWER, sismos USGS, placas PB2002 y fase lunar aproximada por ciudad."
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+    <link rel="stylesheet" href="assets/ui-v2.css" />
+  </head>
+  <body>
+    <main id="loginView" class="login-view" aria-labelledby="loginTitle">
+      <section class="login-panel">
+        <p class="eyebrow">Mapa Mundo</p>
+        <h1 id="loginTitle">Ingreso privado</h1>
+        <form id="loginForm" class="login-form">
+          <label>
+            Usuario
+            <input id="username" name="username" autocomplete="username" required />
+          </label>
+          <label>
+            Contraseña
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+          <label class="check-row remember-row">
+            <input id="rememberDevice" type="checkbox" />
+            Recordar este equipo
+          </label>
+          <p id="loginError" class="form-error" role="alert"></p>
+          <button type="submit" class="primary-button">Entrar</button>
+        </form>
+      </section>
+    </main>
+
+    <main id="appView" class="app-shell" hidden>
+      <aside class="sidebar" aria-label="Panel de ajustes">
+        <div class="brand-row">
+          <div>
+            <p class="eyebrow">NASA POWER · USGS</p>
+            <h1>Mapa Mundo</h1>
+          </div>
+          <button id="logoutButton" class="ghost-button" type="button">Salir</button>
+        </div>
+
+        <section class="control-group">
+          <h2>Fecha</h2>
+          <label>
+            Día seleccionado
+            <input id="dateInput" type="date" min="1981-01-01" required />
+          </label>
+          <label>
+            Fechas por terremotos M7+ desde 1900
+            <select id="earthquakePresetSelect">
+              <option value="">Cargando terremotos M7+ desde 1900...</option>
+            </select>
+          </label>
+          <p class="hint">Datos diarios disponibles desde 1981-01-01 hasta fecha cercana al presente.</p>
+        </section>
+
+        <section class="control-group">
+          <h2>Datos a mostrar</h2>
+          <label class="check-row">
+            <input type="checkbox" class="metric-toggle" value="temperature" checked />
+            Temperatura promedio
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="metric-toggle" value="pressure" />
+            Presión atmosférica
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="metric-toggle" value="humidity" checked />
+            Humedad promedio
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="metric-toggle" value="moon" />
+            Estado de la luna
+          </label>
+        </section>
+
+        <section class="control-group">
+          <h2>Texto en el mapa</h2>
+          <p class="hint">Ocultar el texto mantiene visibles las zonas coloreadas.</p>
+          <label class="check-row">
+            <input type="checkbox" class="label-toggle" value="temperature" checked />
+            Mostrar temperatura escrita
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="label-toggle" value="pressure" checked />
+            Mostrar presión escrita
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="label-toggle" value="humidity" checked />
+            Mostrar humedad escrita
+          </label>
+          <label class="check-row">
+            <input type="checkbox" class="label-toggle" value="moon" checked />
+            Mostrar luna escrita
+          </label>
+        </section>
+
+        <section class="control-group">
+          <h2>Capas geológicas</h2>
+          <label class="check-row">
+            <input id="baseMapToggle" type="checkbox" checked />
+            Mostrar mapa base
+          </label>
+          <label class="check-row">
+            <input id="tectonicPlatesToggle" type="checkbox" />
+            Mostrar placas tectónicas
+          </label>
+          <label class="check-row">
+            <input id="plateCityFilterToggle" type="checkbox" />
+            Filtrar ciudades a 300 km de placas
+          </label>
+        </section>
+
+        <section class="control-group">
+          <h2>Sismos USGS</h2>
+          <label class="check-row">
+            <input id="earthquakesToggle" type="checkbox" />
+            Mostrar terremotos M 6.5+
+          </label>
+          <label class="check-row">
+            <input id="earthquakeLabelsToggle" type="checkbox" />
+            Mostrar texto de terremotos
+          </label>
+          <label>
+            Magnitud mínima
+            <input id="earthquakeMinMagnitude" type="number" min="0" max="10" step="0.1" value="6.5" />
+          </label>
+          <div class="color-grid">
+            <label>
+              M 6.5
+              <input id="earthquakeLowColor" type="color" value="#f6a800" />
+            </label>
+            <label>
+              M 8+
+              <input id="earthquakeHighColor" type="color" value="#b42318" />
+            </label>
+          </div>
+        </section>
+
+        <section class="control-group">
+          <h2>Vista del mapa</h2>
+          <div class="zoom-buttons" aria-label="Zoom del mapa">
+            <button id="mapZoomOut" class="secondary-button" type="button">−</button>
+            <button id="mapZoomIn" class="secondary-button" type="button">+</button>
+          </div>
+          <label>
+            Tamaño de puntos y texto
+            <input id="mapDisplayScale" type="range" min="0.7" max="1.8" step="0.1" value="1" />
+          </label>
+        </section>
+
+        <section class="control-group">
+          <h2>Colores</h2>
+          <div class="color-grid">
+            <label>
+              Frío
+              <input id="temperatureLow" type="color" value="#2364ff" />
+            </label>
+            <label>
+              Calor
+              <input id="temperatureHigh" type="color" value="#e3342f" />
+            </label>
+            <label>
+              Presión baja
+              <input id="pressureLow" type="color" value="#20a4a6" />
+            </label>
+            <label>
+              Presión alta
+              <input id="pressureHigh" type="color" value="#f6a800" />
+            </label>
+            <label>
+              Humedad baja
+              <input id="humidityLow" type="color" value="#c88b37" />
+            </label>
+            <label>
+              Humedad alta
+              <input id="humidityHigh" type="color" value="#1f9fda" />
+            </label>
+            <label>
+              Luna nueva
+              <input id="moonNewColor" type="color" value="#28313f" />
+            </label>
+            <label>
+              Creciente
+              <input id="moonWaxingCrescentColor" type="color" value="#7cc7ff" />
+            </label>
+            <label>
+              Cuarto creciente
+              <input id="moonFirstQuarterColor" type="color" value="#42d6a4" />
+            </label>
+            <label>
+              Gibosa creciente
+              <input id="moonWaxingGibbousColor" type="color" value="#b7e45f" />
+            </label>
+            <label>
+              Luna llena
+              <input id="moonColor" type="color" value="#f5f0c9" />
+            </label>
+            <label>
+              Gibosa menguante
+              <input id="moonWaningGibbousColor" type="color" value="#f6c453" />
+            </label>
+            <label>
+              Cuarto menguante
+              <input id="moonLastQuarterColor" type="color" value="#f08a4b" />
+            </label>
+            <label>
+              Menguante
+              <input id="moonWaningCrescentColor" type="color" value="#c76dd7" />
+            </label>
+          </div>
+        </section>
+
+        <section class="actions" aria-label="Acciones">
+          <button id="applyButton" class="primary-button" type="button">Aplicar ajustes</button>
+          <button id="clearButton" class="secondary-button" type="button">Limpiar mapa</button>
+          <button id="exportImageButton" class="secondary-button" type="button">Exportar imagen</button>
+          <button id="exportCsvButton" class="secondary-button" type="button">Exportar CSV</button>
+        </section>
+
+        <section class="status-panel" aria-live="polite">
+          <h2>Estado</h2>
+          <p id="statusText">Listo para cargar datos.</p>
+          <progress id="loadProgress" value="0" max="1"></progress>
+        </section>
+      </aside>
+
+      <section class="map-stage">
+        <div class="map-toolbar">
+          <div>
+            <p id="mapKicker">Sin datos cargados</p>
+            <h2 id="mapTitle">Mapa de referencia mundial</h2>
+          </div>
+          <div id="legend" class="legend" aria-label="Leyenda"></div>
+        </div>
+        <div id="mapFrame" class="map-frame">
+          <svg id="worldMap" role="img" aria-label="Mapa del mundo con datos meteorologicos por ciudad"></svg>
+        </div>
+        <div id="cityTooltip" class="tooltip" hidden></div>
+        <p class="source-note">
+          Meteorología: NASA POWER Daily API. Sismos: USGS Earthquake Catalog API. Placas: PB2002 vía fraxen/tectonicplates. Base cartográfica: Natural Earth / world-atlas.
+          Fase lunar: cálculo local aproximado para la fecha seleccionada.
+        </p>
+        <section id="earthquakeDetails" class="earthquake-details" hidden>
+          <h2>Terremotos M 6.5+ del día seleccionado</h2>
+          <p id="earthquakeSummary" class="hint"></p>
+          <div id="earthquakeList"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+    <script src="assets/app.js"></script>
+    <script src="assets/city-scope.js"></script>
+    <script src="assets/login-persistence.js"></script>
+    <script src="assets/hotfix.js"></script>
+    <script src="assets/label-controls.js"></script>
+    <script src="assets/tectonic-plates.js"></script>
+    <script src="assets/map-layer-filters.js"></script>
+    <script src="assets/moon-phases.js"></script>
+    <script src="assets/earthquake-presets.js"></script>
+    <script src="assets/earthquake-catalog-async.js"></script>
+    <script src="assets/map-view-controls.js"></script>
+    <script src="assets/earthquakes.js"></script>
+    <script src="assets/csv-export-extended.js"></script>
+    <script src="assets/ui-v2.js"></script>
+  </body>
+</html>
