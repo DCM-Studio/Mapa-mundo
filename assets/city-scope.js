@@ -10,20 +10,21 @@
     : [];
   api.earthquakeEpicenterCities = [];
 
-  api.getVisibleCities = () => dedupeCities(baseCities());
-  api.getHistoricalAnalysisCities = () => dedupeCities([...baseCities(), ...(api.historicalEpicenterCities || [])]);
+  api.getVisibleCities = () => dedupeCities([...baseCities(), ...(api.historicalEpicenterCities || [])]);
+  api.getHistoricalAnalysisCities = () => api.getVisibleCities();
   api.getCities = () => api.getVisibleCities();
 
   api.setEarthquakeEpicenters = (events) => {
     api.historicalEpicenterCities = normalizeEpicenterCities(events || []);
     api.earthquakeEpicenterCities = [];
 
+    const visibleCities = api.getVisibleCities();
     window.dispatchEvent(new CustomEvent("mapaMundo:citiesChanged", {
       detail: {
         baseCities: baseCities().length,
-        visibleCities: api.getVisibleCities().length,
+        visibleCities: visibleCities.length,
         epicenterCities: api.historicalEpicenterCities.length,
-        historicalAnalysisPoints: api.getHistoricalAnalysisCities().length,
+        historicalAnalysisPoints: visibleCities.length,
       },
     }));
 
